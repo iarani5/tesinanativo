@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">WizaPet</string>
+
+    <string-array name="estado">
+        <item>Perdido</item>
+        <item>Encontrado</item>
+        <item>En adopción</item>
+        <item>En transito</item>
+    </string-array>
+
+    <string-array name="especie">
+        <item>Gato</item>
+        <item>Perro</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+</resources>
