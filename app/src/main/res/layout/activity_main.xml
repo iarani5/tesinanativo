@@ -24,7 +24,7 @@
         tools:ignore="MissingConstraints" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/sendFormBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="153dp"
@@ -46,7 +46,7 @@
     <EditText
         android:id="@+id/name"
         android:layout_width="150dp"
-        android:layout_height="42dp"
+        android:layout_height="48dp"
         android:layout_marginStart="23dp"
         android:layout_marginEnd="238dp"
         android:layout_marginBottom="214dp"
@@ -59,9 +59,9 @@
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/editTextTextPersonName3"
+        android:id="@+id/lastName"
         android:layout_width="178dp"
-        android:layout_height="42dp"
+        android:layout_height="48dp"
         android:layout_marginStart="211dp"
         android:layout_marginEnd="22dp"
         android:layout_marginBottom="214dp"
@@ -74,9 +74,9 @@
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/editTextTextEmailAddress"
+        android:id="@+id/EmailAddress"
         android:layout_width="366dp"
-        android:layout_height="41dp"
+        android:layout_height="48dp"
         android:layout_marginStart="23dp"
         android:layout_marginEnd="22dp"
         android:layout_marginBottom="155dp"
@@ -102,22 +102,22 @@
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/editTextNumber"
-        android:layout_width="364dp"
-        android:layout_height="41dp"
-        android:layout_marginStart="24dp"
+        android:id="@+id/phoneNumber"
+        android:layout_width="282dp"
+        android:layout_height="48dp"
         android:layout_marginEnd="23dp"
-        android:layout_marginBottom="100dp"
+        android:layout_marginBottom="96dp"
         android:ems="10"
         android:hint="Celular"
         android:inputType="number"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.986"
+        app:layout_constraintStart_toEndOf="@+id/prefix"
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/editTextTextPersonName4"
+        android:id="@+id/race"
         android:layout_width="154dp"
         android:layout_height="43dp"
         android:layout_marginStart="27dp"
@@ -150,7 +150,7 @@
     <Spinner
         android:id="@+id/spinner_estado"
         android:layout_width="158dp"
-        android:layout_height="35dp"
+        android:layout_height="48dp"
         android:layout_marginStart="27dp"
         android:layout_marginTop="53dp"
         android:layout_marginEnd="226dp"
@@ -165,7 +165,7 @@
     <Spinner
         android:id="@+id/spinner_especie"
         android:layout_width="159dp"
-        android:layout_height="40dp"
+        android:layout_height="48dp"
         android:layout_marginStart="27dp"
         android:layout_marginTop="131dp"
         android:layout_marginEnd="225dp"
@@ -195,7 +195,7 @@
     <Switch
         android:id="@+id/switch1"
         android:layout_width="171dp"
-        android:layout_height="44dp"
+        android:layout_height="48dp"
         android:layout_marginStart="213dp"
         android:layout_marginTop="218dp"
         android:layout_marginEnd="27dp"
@@ -226,7 +226,7 @@
 
     <Button
         android:id="@+id/btnGallery"
-        android:layout_width="43dp"
+        android:layout_width="48dp"
         android:layout_height="49dp"
         android:layout_marginStart="344dp"
         android:layout_marginTop="139dp"
@@ -240,7 +240,7 @@
         tools:ignore="MissingConstraints" />
 
     <EditText
-        android:id="@+id/edit_text"
+        android:id="@+id/comments"
         android:layout_width="362dp"
         android:layout_height="107dp"
         android:layout_marginStart="25dp"
@@ -268,4 +268,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/prefix"
+        android:layout_width="80dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginBottom="96dp"
+        android:text="+54 11"
+        android:textSize="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
