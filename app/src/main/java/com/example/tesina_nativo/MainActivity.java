@@ -1,47 +1,43 @@
 package com.example.tesina_nativo;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
+import android.media.Image;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
-import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
-import android.util.Patterns;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.TextView;
-import android.widget.Toast;
-
+import android.widget.Switch;
 import com.google.gson.Gson;
 
-import java.util.regex.Pattern;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity {
 
     int GALLERY_REQ_CODE = 1000;
+    animal Oneanimal = new animal();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        //lastname validation VALIADTE ONCHANGE
-        /*lastName.addTextChangedListener(new TextValidator(lastName) {
-            @Override public void validate(TextView textView, String text) {
-
-                String firstNameVal = lastName.getText().toString();
-
-                if(firstNameVal.matches("[ña-zA-Z]{3,}")) {
-                    Log.i("val","es letra");
-                } else {
-                    lastName.setError("minimo 3 caracteres");
-                }
-            }
-        });*/
 
         Spinner spinnerEstado=findViewById(R.id.spinner_estado);
         ArrayAdapter<CharSequence>adapter=ArrayAdapter.createFromResource(this, R.array.estado, android.R.layout.simple_spinner_item);
@@ -65,28 +61,136 @@ public class MainActivity extends AppCompatActivity {
         });
 
         //***** SEND FORM *****//
-        Gson gson = new Gson();
 
         Button sendFormBtn = (Button)findViewById(R.id.sendFormBtn);
 
         sendFormBtn.setOnClickListener(view -> {
             if(validateName()&&validateLastName()&&validateEmail()&&validatephoneNumber()&&validateComments()&&validateRace()){
-                //save content
                 //mensaje de creado con exito // Toast.makeText(getApplicationContext(), "Both Name and Password are required", Toast.LENGTH_LONG).show();
-                Log.i("info","valido");
+
+                Spinner animalSpecies = (Spinner)findViewById(R.id.spinner_especie);
+                Oneanimal.setAnimalSpecies(animalSpecies.getSelectedItem().toString());
+
+                Spinner animalState = (Spinner)findViewById(R.id.spinner_estado);
+                Oneanimal.setAnimalState(animalState.getSelectedItem().toString());
+
+                Switch animalCastrated = (Switch)findViewById(R.id.switch1);
+                Oneanimal.setAnimalCastrated(animalCastrated.isChecked());
+
+                ImageView photo= (ImageView) findViewById(R.id.imgGallery);
+                /*Drawable drawable = photo.getDrawable();
+
+                drawable.setBounds(20, 30, drawable.getIntrinsicWidth()+20, drawable.getIntrinsicHeight()+30);
+                drawable.draw(canvas);*/
+
+                //String encodedImage = Base64.encodeToString(, Base64.DEFAULT);
+
+
+                // Serialization
+                Gson gson = new Gson();
+                String json = gson.toJson(Oneanimal);
+                try {
+                    save(json);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                //save(,json);
+               /* private String saveToInternalStorage(Bitmap bitmapImage){
+                    ContextWrapper cw = new ContextWrapper(getApplicationContext());
+                    // path to /data/data/yourapp/app_data/imageDir
+                    File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
+                    // Create imageDir
+                    File mypath=new File(directory,"profile.jpg");
+
+                    FileOutputStream fos = null;
+                    try {
+                        fos = new FileOutputStream(mypath);
+                        // Use the compress method on the BitMap object to write image to the OutputStream
+                        bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    } finally {
+                        try {
+                            fos.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    return directory.getAbsolutePath();
+                }*/
+
             }
             else{
                 Log.i("info","invalido");
             }
-            //Log.i("info","click");
-            //Serialize to JSON. Then you can save string to file
-         //   String json = gson.toJson(entity); // {"id":100,"name":"name"}
 
             // On application start you can deserialize your entity from file
-         //   Entity read = gson.fromJson(json, Entity.class);
+            //   Entity read = gson.fromJson(json, Entity.class);
         });
     }
 
+
+    //**** save JSON ****//
+
+    public void save(String jsonString) throws IOException {
+        //Get your FilePath and use it to create your File
+        String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
+        File yourFile = new File(yourFilePath);
+
+        try{
+            //Create your FileOutputStream, yourFile is part of the constructor
+            FileOutputStream fileOutputStream = new FileOutputStream(yourFile);
+            //Convert your JSON String to Bytes and write() it
+            fileOutputStream.write(jsonString.getBytes());
+            //Finally flush and close your FileOutputStream
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    //*** read JSON ***//
+    public void read() throws IOException {
+        Gson gson = new Gson();
+        String text = null;
+        //Make sure to use a try-catch statement to catch any errors
+            try {
+                //Make your FilePath and File
+                String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
+                File yourFile = new File(yourFilePath);
+                //Make an InputStream with your File in the constructor
+                InputStream inputStream = new FileInputStream(yourFile);
+                StringBuilder stringBuilder = new StringBuilder();
+                //Check to see if your inputStream is null
+                //If it isn't use the inputStream to make a InputStreamReader
+                //Use that to make a BufferedReader
+                //Also create an empty String
+                if (inputStream != null) {
+                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                    String receiveString = "";
+                    //Use a while loop to append the lines from the Buffered reader
+                    while ((receiveString = bufferedReader.readLine()) != null){
+                        stringBuilder.append(receiveString);
+                    }
+                    //Close your InputStream and save stringBuilder as a String
+                    inputStream.close();
+                    text = stringBuilder.toString();
+                    Log.i("rtaaa", gson.fromJson(stringBuilder.toString()));
+                }
+            } catch (FileNotFoundException e) {
+                //Log your error with Log.e
+            } catch (IOException e) {
+                //Log your error with Log.e
+            }
+            //Use Gson to recreate your Object from the text String
+            //Object yourObject = gson.fromJson(text);
+        }
+
+
+    //************ file ***********//
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
         super.onActivityResult(resultCode, resultCode, data);
@@ -97,15 +201,14 @@ public class MainActivity extends AppCompatActivity {
                 imgGallery.setImageURI(data.getData());
             }
         }
-
     }
 
-
     //********** VALIDATIONS **********//
+
     private boolean validateName(){
         EditText contactName = (EditText)findViewById(R.id.name);
-        String firstNameVal = contactName.getText().toString();
-        if(!firstNameVal.matches("[ña-zA-Z]{3,}")) {
+        Oneanimal.setHumanName(contactName.getText().toString());
+        if(!Oneanimal.getHumanName().matches("[ña-zA-Z ]{3,}")) {
             contactName.setError("minimo 3 caracteres");
             return false;
         }
@@ -114,8 +217,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean validateLastName(){
         EditText lastName = (EditText)findViewById(R.id.lastName);
-        String firstNameVal = lastName.getText().toString();
-        if(!firstNameVal.matches("[ña-zA-Z]{3,}")) {
+        Oneanimal.setHumanLastName(lastName.getText().toString());
+        if(!Oneanimal.getHumanLastName().matches("[ña-zA-Z ]{3,}")) {
             lastName.setError("minimo 3 caracteres");
             return false;
         }
@@ -124,8 +227,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean validateEmail(){
         EditText emailAdress = (EditText)findViewById(R.id.EmailAddress);
-        String firstNameVal = emailAdress.getText().toString();
-        if(!firstNameVal.matches("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+")) {
+        Oneanimal.setHumanMail(emailAdress.getText().toString());
+        if(!Oneanimal.getHumanMail().matches("[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+")) {
             emailAdress.setError("formato invalido");
             return false;
         }
@@ -134,8 +237,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean validatephoneNumber(){
         EditText phoneNumber = (EditText)findViewById(R.id.phoneNumber);
-        String firstNameVal = phoneNumber.getText().toString();
-        if(!firstNameVal.matches("[0-9]{8}")) {
+        Oneanimal.setHumanPhone(phoneNumber.getText().toString());
+        if(!Oneanimal.getHumanPhone().matches("[0-9]{8}")) {
             phoneNumber.setError("formato invalido");
             return false;
         }
@@ -144,8 +247,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean validateComments(){
         EditText comments = (EditText)findViewById(R.id.comments);
-        String firstNameVal = comments.getText().toString();
-        if(!firstNameVal.matches("^.{20,}$")) {
+        Oneanimal.setComments(comments.getText().toString());
+        if(!Oneanimal.getComments().matches("^.{20,}$")) {
             comments.setError("minimo 20 caracteres");
             return false;
         }
@@ -154,8 +257,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean validateRace(){
         EditText race = (EditText)findViewById(R.id.race);
-        String firstNameVal = race.getText().toString();
-        if(!firstNameVal.matches("[ña-zA-Z]{3,}")) {
+        Oneanimal.setAnimalRace(race.getText().toString());
+        if(!Oneanimal.getAnimalRace().matches("[ña-zA-Z ]{3,}")) {
             race.setError("minimo 3 caracteres");
             return false;
         }
@@ -163,4 +266,25 @@ public class MainActivity extends AppCompatActivity {
     }
 }
 
+// TO READ THE FILE
 
+/*
+
+private void loadImageFromStorage(String path)
+{
+
+    try {
+        File f=new File(path, "profile.jpg");
+        Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
+            ImageView img=(ImageView)findViewById(R.id.imgPicker);
+        img.setImageBitmap(b);
+    }
+    catch (FileNotFoundException e)
+    {
+        e.printStackTrace();
+    }
+
+}
+
+
+ */
