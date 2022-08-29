@@ -1,11 +1,20 @@
 package com.example.tesina_nativo;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.core.content.res.ResourcesCompat;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.media.Image;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -28,11 +37,14 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
     int GALLERY_REQ_CODE = 1000;
     animal Oneanimal = new animal();
+    ImageView img;
+    String root;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,16 +61,51 @@ public class MainActivity extends AppCompatActivity {
         adapter2.setDropDownViewResource(android.R.layout.simple_spinner_item);
         spinnerEspecie.setAdapter(adapter2);
 
+        //******** IMAGE ******//
+
+        //permissions to user required
+        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA}, 1000);
+        }
+
         // PET AVATAR
         Button btnGallery = findViewById(R.id.btnGallery);
-        ImageView img= (ImageView) findViewById(R.id.imgGallery);
+        img = (ImageView) findViewById(R.id.imgGallery);
         img.setImageResource(R.drawable.nuevo_proyecto);
+        //visor = findViewById(R.id.iv_visor);
+
 
         btnGallery.setOnClickListener(view -> {
-            Intent iGallery = new Intent(Intent.ACTION_PICK);
+            abrirCamara();
+            /*Intent iGallery = new Intent(Intent.ACTION_PICK);
             iGallery.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            startActivityForResult(iGallery, GALLERY_REQ_CODE);
+            //startActivityForResult(iGallery, GALLERY_REQ_CODE);
+
+            //probando
+            File photoFile = null;
+            try {
+                photoFile = SaveImage();
+            }
+            catch (IOException ex){
+                Log.e("error", ex.toString());
+            }
+
+            if(photoFile!=null){
+                Uri uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
+                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
+                getIntent().putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                startActivityForResult(getIntent(),GALLERY_REQ_CODE);
+
+            }*/
+
+
+
+
+
+
         });
+
+
 
         //***** SEND FORM *****//
 
@@ -91,6 +138,12 @@ public class MainActivity extends AppCompatActivity {
                 String json = gson.toJson(Oneanimal);
                 try {
                     save(json);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                try {
+                    read();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -131,6 +184,31 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void abrirCamara(){
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if(intent.resolveActivity(getPackageManager())!=null){
+            File photoFile = null;
+            try {
+                photoFile = SaveImage();
+            }
+            catch (IOException ex){
+                Log.e("error", ex.toString());
+            }
+
+            Log.i("LA IMAGEN", String.valueOf(photoFile));
+            if(photoFile!=null){ // validate if there is no other img taken
+                Log.i("atroden", "ENTRE NO ES NULL");
+
+
+                Uri uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
+                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                //startActivityForResult(getIntent(), GALLERY_REQ_CODE);
+                startActivityForResult(intent, GALLERY_REQ_CODE);
+            }
+        }
+        //startActivityForResult(iGallery, GALLERY_REQ_CODE);
+    }
     //**** save JSON ****//
 
     public void save(String jsonString) throws IOException {
@@ -154,8 +232,7 @@ public class MainActivity extends AppCompatActivity {
     //*** read JSON ***//
     public void read() throws IOException {
         Gson gson = new Gson();
-        String text = null;
-        //Make sure to use a try-catch statement to catch any errors
+        String text = "";
             try {
                 //Make your FilePath and File
                 String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
@@ -178,7 +255,6 @@ public class MainActivity extends AppCompatActivity {
                     //Close your InputStream and save stringBuilder as a String
                     inputStream.close();
                     text = stringBuilder.toString();
-                    Log.i("rtaaa", gson.fromJson(stringBuilder.toString()));
                 }
             } catch (FileNotFoundException e) {
                 //Log your error with Log.e
@@ -186,21 +262,52 @@ public class MainActivity extends AppCompatActivity {
                 //Log your error with Log.e
             }
             //Use Gson to recreate your Object from the text String
-            //Object yourObject = gson.fromJson(text);
-        }
+            Object yourObject = gson.toJson(text);
+            Log.i("rtaaa", yourObject.toString());
+
+    }
 
 
     //************ file ***********//
+    //to caputre image
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
+    protected void onActivityResult(int requestCode, int resultCode, Intent data){
+        Log.i("requestCode", String.valueOf(requestCode));
+        Log.i("resultCode", String.valueOf(resultCode));
+        Log.i("RESULT_OK", String.valueOf(RESULT_OK));
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == 1000 && resultCode==RESULT_OK){
+           // Log.i("ENTRE PERRACA", "RANDOM");
+           // val imgBitmap = (ResourcesCompat.getDrawable(this.resources, R.drawable.ic_home_black_24dp, null) as VectorDrawable).toBitmap();
+            Bitmap imgBitmap = BitmapFactory.decodeFile(root);
+            Log.i("A VERGA", String.valueOf(imgBitmap));
+            img.setImageBitmap(imgBitmap);
+        }
+    }
+    /* @Override
+   protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
         super.onActivityResult(resultCode, resultCode, data);
         ImageView imgGallery = findViewById(R.id.imgGallery);
 
         if(resultCode==RESULT_OK){
             if(requestCode==GALLERY_REQ_CODE){
                 imgGallery.setImageURI(data.getData());
+                //Bitmap imgBitmap = BitmapFactory.decodeFile(root);
+                //Log.i("A VERGA", String.valueOf(imgBitmap));
+                //img.setImageBitmap(imgBitmap);
             }
         }
+    }*/
+
+    //** save file **//
+
+    private File SaveImage() throws IOException{
+        String nameFile = "foto_";
+        File directory = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File file = File.createTempFile(nameFile,".jpg", directory);
+        root = file.getAbsolutePath();
+        return file;
     }
 
     //********** VALIDATIONS **********//

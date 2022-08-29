@@ -1,6 +1,7 @@
 package com.example.tesina_nativo;
 
 import android.widget.EditText;
+import android.widget.ImageView;
 
 public class animal {
 
@@ -12,6 +13,7 @@ public class animal {
     private String animalRace;
     private String animalState;
     private String animalSpecies;
+    private ImageView animalPhoto;
     private boolean animalCastrated;
 
 
@@ -78,6 +80,10 @@ public class animal {
     public void setAnimalSpecies(String animalSpecies) {
         this.animalSpecies = animalSpecies;
     }
+
+    public ImageView getAnimalPhoto() { return animalPhoto; }
+
+    public void setAnimalPhoto(ImageView animalPhoto) { this.animalPhoto = animalPhoto; }
 
     public boolean isAnimalCastrated() { return animalCastrated; }
 
