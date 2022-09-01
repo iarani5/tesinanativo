@@ -1,5 +1,6 @@
 package com.example.tesina_nativo;
 
+import android.net.Uri;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -13,7 +14,7 @@ public class animal {
     private String animalRace;
     private String animalState;
     private String animalSpecies;
-    private ImageView animalPhoto;
+    private Uri animalPhoto;
     private boolean animalCastrated;
 
 
@@ -81,9 +82,9 @@ public class animal {
         this.animalSpecies = animalSpecies;
     }
 
-    public ImageView getAnimalPhoto() { return animalPhoto; }
+    public Uri getAnimalPhoto() { return animalPhoto; }
 
-    public void setAnimalPhoto(ImageView animalPhoto) { this.animalPhoto = animalPhoto; }
+    public void setAnimalPhoto(Uri animalPhoto) { this.animalPhoto = animalPhoto; }
 
     public boolean isAnimalCastrated() { return animalCastrated; }
 

@@ -1,5 +1,6 @@
 package com.example.tesina_nativo;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -7,9 +8,12 @@ import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 
 import android.Manifest;
+import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -41,10 +45,11 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    int GALLERY_REQ_CODE = 1000;
     animal Oneanimal = new animal();
     ImageView img;
     String root;
+    Context context;
+    Uri uri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,40 +77,11 @@ public class MainActivity extends AppCompatActivity {
         Button btnGallery = findViewById(R.id.btnGallery);
         img = (ImageView) findViewById(R.id.imgGallery);
         img.setImageResource(R.drawable.nuevo_proyecto);
-        //visor = findViewById(R.id.iv_visor);
-
 
         btnGallery.setOnClickListener(view -> {
-            abrirCamara();
-            /*Intent iGallery = new Intent(Intent.ACTION_PICK);
-            iGallery.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            //startActivityForResult(iGallery, GALLERY_REQ_CODE);
-
-            //probando
-            File photoFile = null;
-            try {
-                photoFile = SaveImage();
-            }
-            catch (IOException ex){
-                Log.e("error", ex.toString());
-            }
-
-            if(photoFile!=null){
-                Uri uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
-                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
-                getIntent().putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                startActivityForResult(getIntent(),GALLERY_REQ_CODE);
-
-            }*/
-
-
-
-
-
-
+            context=this;
+            selectImage(context);
         });
-
-
 
         //***** SEND FORM *****//
 
@@ -124,26 +100,22 @@ public class MainActivity extends AppCompatActivity {
                 Switch animalCastrated = (Switch)findViewById(R.id.switch1);
                 Oneanimal.setAnimalCastrated(animalCastrated.isChecked());
 
-                ImageView photo= (ImageView) findViewById(R.id.imgGallery);
-                /*Drawable drawable = photo.getDrawable();
-
-                drawable.setBounds(20, 30, drawable.getIntrinsicWidth()+20, drawable.getIntrinsicHeight()+30);
-                drawable.draw(canvas);*/
-
-                //String encodedImage = Base64.encodeToString(, Base64.DEFAULT);
-
-
                 // Serialization
                 Gson gson = new Gson();
+                Log.i("UN ANIMAL ---------", String.valueOf(Oneanimal));
+
                 String json = gson.toJson(Oneanimal);
                 try {
                     save(json);
+                    Log.i("lo GUARDE ---------","--------------------------------------");
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
 
                 try {
                     read();
+                    Log.i("lo estoy leyendo ---","-------------------------------------");
+
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -179,40 +151,14 @@ public class MainActivity extends AppCompatActivity {
             }
 
             // On application start you can deserialize your entity from file
-            //   Entity read = gson.fromJson(json, Entity.class);
+            // Entity read = gson.fromJson(json, Entity.class);
         });
     }
 
-
-    private void abrirCamara(){
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if(intent.resolveActivity(getPackageManager())!=null){
-            File photoFile = null;
-            try {
-                photoFile = SaveImage();
-            }
-            catch (IOException ex){
-                Log.e("error", ex.toString());
-            }
-
-            Log.i("LA IMAGEN", String.valueOf(photoFile));
-            if(photoFile!=null){ // validate if there is no other img taken
-                Log.i("atroden", "ENTRE NO ES NULL");
-
-
-                Uri uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
-                        BuildConfig.APPLICATION_ID + ".provider", photoFile);
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-                //startActivityForResult(getIntent(), GALLERY_REQ_CODE);
-                startActivityForResult(intent, GALLERY_REQ_CODE);
-            }
-        }
-        //startActivityForResult(iGallery, GALLERY_REQ_CODE);
-    }
     //**** save JSON ****//
-
     public void save(String jsonString) throws IOException {
         //Get your FilePath and use it to create your File
+        Log.i("--- DIRECCION", String.valueOf(this.getFilesDir()));
         String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
         File yourFile = new File(yourFilePath);
 
@@ -263,42 +209,109 @@ public class MainActivity extends AppCompatActivity {
             }
             //Use Gson to recreate your Object from the text String
             Object yourObject = gson.toJson(text);
-            Log.i("rtaaa", yourObject.toString());
+            Log.i("--- RTA ---", yourObject.toString());
 
     }
 
 
     //************ file ***********//
-    //to caputre image
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data){
-        Log.i("requestCode", String.valueOf(requestCode));
-        Log.i("resultCode", String.valueOf(resultCode));
-        Log.i("RESULT_OK", String.valueOf(RESULT_OK));
-        super.onActivityResult(requestCode, resultCode, data);
+    private void selectImage(Context context) {
+        final CharSequence[] options = { "Tomar Foto", "Elegir de la galerìa","Cancelar" };
 
-        if(requestCode == 1000 && resultCode==RESULT_OK){
-           // Log.i("ENTRE PERRACA", "RANDOM");
-           // val imgBitmap = (ResourcesCompat.getDrawable(this.resources, R.drawable.ic_home_black_24dp, null) as VectorDrawable).toBitmap();
-            Bitmap imgBitmap = BitmapFactory.decodeFile(root);
-            Log.i("A VERGA", String.valueOf(imgBitmap));
-            img.setImageBitmap(imgBitmap);
-        }
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Elegir foto");
+
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int item) {
+
+                if (options[item].equals("Tomar Foto")) {
+                    /*File photoFile = null;
+                    try {
+                        photoFile = SaveImage();
+                    }
+                    catch (IOException ex){
+                        Log.e("error", ex.toString());
+                    }
+                    uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
+                            BuildConfig.APPLICATION_ID + ".provider", photoFile);
+
+                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    takePicture.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+                    startActivityForResult(takePicture, 0);
+                    Oneanimal.setAnimalPhoto(uri);*/
+
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.Images.Media.TITLE, "MyPicture");
+                    values.put(MediaStore.Images.Media.DESCRIPTION, "Photo taken on " + System.currentTimeMillis());
+
+                    uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                    /*Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);*/
+                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    takePicture.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+
+                    startActivityForResult(takePicture, 0);
+
+
+                } else if (options[item].equals("Elegir de la galerìa")) {
+                    Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                    startActivityForResult(pickPhoto , 1);
+                    Oneanimal.setAnimalPhoto(uri);
+
+
+                } else if (options[item].equals("Cancelar")) {
+                    dialog.dismiss();
+                }
+            }
+        });
+        builder.show();
     }
-    /* @Override
-   protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data){
-        super.onActivityResult(resultCode, resultCode, data);
-        ImageView imgGallery = findViewById(R.id.imgGallery);
 
-        if(resultCode==RESULT_OK){
-            if(requestCode==GALLERY_REQ_CODE){
-                imgGallery.setImageURI(data.getData());
-                //Bitmap imgBitmap = BitmapFactory.decodeFile(root);
-                //Log.i("A VERGA", String.valueOf(imgBitmap));
-                //img.setImageBitmap(imgBitmap);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode != RESULT_CANCELED) {
+
+            switch (requestCode) {
+                case 0:
+
+                    img.setImageURI(uri);
+                   /* Log.i("Y LA DATA?", String.valueOf(data));
+                    if (resultCode == RESULT_OK && data != null) {
+
+                        Bitmap selectedImage = (Bitmap) data.getExtras().get("data");
+                        img.setImageBitmap(selectedImage);
+                        img.setImageURI(data.getData());
+
+                        //BitmapFactory.decodeFile(root);
+                        //Oneanimal.setAnimalPhoto(uri);
+                    }*/
+                    break;
+                case 1:
+                    if (resultCode == RESULT_OK && data != null) {
+                        Uri selectedImage = data.getData();
+                        String[] filePathColumn = {MediaStore.Images.Media.DATA};
+                        if (selectedImage != null) {
+                            Cursor cursor = getContentResolver().query(selectedImage,
+                                    filePathColumn, null, null, null);
+                            if (cursor != null) {
+                                cursor.moveToFirst();
+
+                                int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+                                String picturePath = cursor.getString(columnIndex);
+                                img.setImageBitmap(BitmapFactory.decodeFile(picturePath));
+                                img.setImageURI(data.getData());
+                                cursor.close();
+                            }
+                        }
+                    }
+                    break;
             }
         }
-    }*/
+    }
 
     //** save file **//
 
@@ -372,6 +385,7 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 }
+
 
 // TO READ THE FILE
 
