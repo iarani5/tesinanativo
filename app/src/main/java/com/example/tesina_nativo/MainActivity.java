@@ -1,4 +1,7 @@
 package com.example.tesina_nativo;
+import static android.content.ContentValues.TAG;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,6 +33,15 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Switch;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -41,6 +53,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
     String root;
     Context context;
     Uri uri;
+
+    // Access a Cloud Firestore instance from your Activity
+    FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,8 +117,9 @@ public class MainActivity extends AppCompatActivity {
                 Switch animalCastrated = (Switch)findViewById(R.id.switch1);
                 Oneanimal.setAnimalCastrated(animalCastrated.isChecked());
 
+                saveData(Oneanimal);
                 // Serialization
-                Gson gson = new Gson();
+                /*Gson gson = new Gson();
                 Log.i("UN ANIMAL ---------", String.valueOf(Oneanimal));
 
                 String json = gson.toJson(Oneanimal);
@@ -118,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                }
+                }*/
 
                 //save(,json);
                /* private String saveToInternalStorage(Bitmap bitmapImage){
@@ -155,64 +173,53 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    //**** save JSON ****//
-    public void save(String jsonString) throws IOException {
-        //Get your FilePath and use it to create your File
-        Log.i("--- DIRECCION", String.valueOf(this.getFilesDir()));
-        String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
-        File yourFile = new File(yourFilePath);
+    public void saveData(animal user_animal){
 
-        try{
-            //Create your FileOutputStream, yourFile is part of the constructor
-            FileOutputStream fileOutputStream = new FileOutputStream(yourFile);
-            //Convert your JSON String to Bytes and write() it
-            fileOutputStream.write(jsonString.getBytes());
-            //Finally flush and close your FileOutputStream
-            fileOutputStream.flush();
-            fileOutputStream.close();
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
+        Map<String, Object> user = new HashMap<>();
+        user.put("situacion", user_animal.getAnimalState());
+        user.put("especie", user_animal.getAnimalSpecies());
+        user.put("castrado", user_animal.isAnimalCastrated());
+        user.put("raza", user_animal.getAnimalRace());
+        user.put("comentarios", user_animal.getComments());
+        user.put("nombre", user_animal.getHumanName());
+        user.put("apellido", user_animal.getHumanLastName());
+        user.put("email", user_animal.getHumanMail());
+        user.put("celular", user_animal.getHumanPhone());
+        user.put("foto", uri);
 
-    //*** read JSON ***//
-    public void read() throws IOException {
-        Gson gson = new Gson();
-        String text = "";
-            try {
-                //Make your FilePath and File
-                String yourFilePath = this.getFilesDir() + "/" + "filename.txt";
-                File yourFile = new File(yourFilePath);
-                //Make an InputStream with your File in the constructor
-                InputStream inputStream = new FileInputStream(yourFile);
-                StringBuilder stringBuilder = new StringBuilder();
-                //Check to see if your inputStream is null
-                //If it isn't use the inputStream to make a InputStreamReader
-                //Use that to make a BufferedReader
-                //Also create an empty String
-                if (inputStream != null) {
-                    InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                    String receiveString = "";
-                    //Use a while loop to append the lines from the Buffered reader
-                    while ((receiveString = bufferedReader.readLine()) != null){
-                        stringBuilder.append(receiveString);
+        // Add a new document with a generated ID
+        db.collection("users")
+                .add(user)
+                .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
                     }
-                    //Close your InputStream and save stringBuilder as a String
-                    inputStream.close();
-                    text = stringBuilder.toString();
-                }
-            } catch (FileNotFoundException e) {
-                //Log your error with Log.e
-            } catch (IOException e) {
-                //Log your error with Log.e
-            }
-            //Use Gson to recreate your Object from the text String
-            Object yourObject = gson.toJson(text);
-            Log.i("--- RTA ---", yourObject.toString());
-
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w(TAG, "Error adding document", e);
+                    }
+                });
     }
 
+    public void getData(){
+        db.collection("users")
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.d(TAG, document.getId() + " => " + document.getData());
+                            }
+                        } else {
+                            Log.w(TAG, "Error getting documents.", task.getException());
+                        }
+                    }
+                });
+    }
 
     //************ file ***********//
     private void selectImage(Context context) {
