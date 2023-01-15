@@ -11,6 +11,7 @@ import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 
 import android.Manifest;
+import android.app.ActionBar;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -27,10 +28,14 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.Switch;
 
@@ -53,6 +58,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.sql.Timestamp;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -64,9 +71,18 @@ public class MainActivity extends AppCompatActivity {
     String root;
     Context context;
     Uri uri;
+    String dataLoaded;
+
+    //generate key to store user info in db
+    Date date = new Date();
+    Timestamp timestamp2 = new Timestamp(date.getTime());
+
+    String name = "user_pet" + timestamp2;
 
     // Access a Cloud Firestore instance from your Activity
     FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,7 +122,6 @@ public class MainActivity extends AppCompatActivity {
 
         sendFormBtn.setOnClickListener(view -> {
             if(validateName()&&validateLastName()&&validateEmail()&&validatephoneNumber()&&validateComments()&&validateRace()){
-                //mensaje de creado con exito // Toast.makeText(getApplicationContext(), "Both Name and Password are required", Toast.LENGTH_LONG).show();
 
                 Spinner animalSpecies = (Spinner)findViewById(R.id.spinner_especie);
                 Oneanimal.setAnimalSpecies(animalSpecies.getSelectedItem().toString());
@@ -118,51 +133,6 @@ public class MainActivity extends AppCompatActivity {
                 Oneanimal.setAnimalCastrated(animalCastrated.isChecked());
 
                 saveData(Oneanimal);
-                // Serialization
-                /*Gson gson = new Gson();
-                Log.i("UN ANIMAL ---------", String.valueOf(Oneanimal));
-
-                String json = gson.toJson(Oneanimal);
-                try {
-                    save(json);
-                    Log.i("lo GUARDE ---------","--------------------------------------");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                try {
-                    read();
-                    Log.i("lo estoy leyendo ---","-------------------------------------");
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }*/
-
-                //save(,json);
-               /* private String saveToInternalStorage(Bitmap bitmapImage){
-                    ContextWrapper cw = new ContextWrapper(getApplicationContext());
-                    // path to /data/data/yourapp/app_data/imageDir
-                    File directory = cw.getDir("imageDir", Context.MODE_PRIVATE);
-                    // Create imageDir
-                    File mypath=new File(directory,"profile.jpg");
-
-                    FileOutputStream fos = null;
-                    try {
-                        fos = new FileOutputStream(mypath);
-                        // Use the compress method on the BitMap object to write image to the OutputStream
-                        bitmapImage.compress(Bitmap.CompressFormat.PNG, 100, fos);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    } finally {
-                        try {
-                            fos.close();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    return directory.getAbsolutePath();
-                }*/
-
             }
             else{
                 Log.i("info","invalido");
@@ -188,12 +158,13 @@ public class MainActivity extends AppCompatActivity {
         user.put("foto", uri);
 
         // Add a new document with a generated ID
-        db.collection("users")
+        db.collection(name)
                 .add(user)
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
                         Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                        modal();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -205,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void getData(){
-        db.collection("users")
+        db.collection(name)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
@@ -213,12 +184,42 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
+                                //document.getData()
+                                //ENVIAR DATOS DE LA BBD DESDE ESTA CLASE AL LAYOUT DE MODAL
                             }
                         } else {
                             Log.w(TAG, "Error getting documents.", task.getException());
                         }
                     }
                 });
+    }
+
+    //******* MODAL *******//
+
+    public void modal() {
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);
+        alert.setTitle("Publicación creada con éxito");
+        // alert.setMessage("Message");
+
+        alert.setPositiveButton("Ver", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+
+                //get data form db
+                getData();
+
+                setContentView(R.layout.modal);
+
+            }
+        });
+
+        alert.setNegativeButton("Volver",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                    }
+                });
+
+        alert.show();
+
     }
 
     //************ file ***********//
@@ -234,29 +235,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(DialogInterface dialog, int item) {
 
                 if (options[item].equals("Tomar Foto")) {
-                    /*File photoFile = null;
-                    try {
-                        photoFile = SaveImage();
-                    }
-                    catch (IOException ex){
-                        Log.e("error", ex.toString());
-                    }
-                    uri = FileProvider.getUriForFile(Objects.requireNonNull(getApplicationContext()),
-                            BuildConfig.APPLICATION_ID + ".provider", photoFile);
-
-                    Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    takePicture.putExtra(MediaStore.EXTRA_OUTPUT, uri);
-
-                    startActivityForResult(takePicture, 0);
-                    Oneanimal.setAnimalPhoto(uri);*/
 
                     ContentValues values = new ContentValues();
                     values.put(MediaStore.Images.Media.TITLE, "MyPicture");
                     values.put(MediaStore.Images.Media.DESCRIPTION, "Photo taken on " + System.currentTimeMillis());
 
                     uri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-                    /*Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT, uri);*/
+
                     Intent takePicture = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                     takePicture.putExtra(MediaStore.EXTRA_OUTPUT, uri);
 
@@ -284,18 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
             switch (requestCode) {
                 case 0:
-
                     img.setImageURI(uri);
-                   /* Log.i("Y LA DATA?", String.valueOf(data));
-                    if (resultCode == RESULT_OK && data != null) {
-
-                        Bitmap selectedImage = (Bitmap) data.getExtras().get("data");
-                        img.setImageBitmap(selectedImage);
-                        img.setImageURI(data.getData());
-
-                        //BitmapFactory.decodeFile(root);
-                        //Oneanimal.setAnimalPhoto(uri);
-                    }*/
                     break;
                 case 1:
                     if (resultCode == RESULT_OK && data != null) {
