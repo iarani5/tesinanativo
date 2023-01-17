@@ -11,11 +11,13 @@ import androidx.core.content.FileProvider;
 import androidx.core.content.res.ResourcesCompat;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -38,6 +40,7 @@ import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.TextView;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -48,6 +51,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -64,6 +69,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+
 public class MainActivity extends AppCompatActivity {
 
     animal Oneanimal = new animal();
@@ -71,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
     String root;
     Context context;
     Uri uri;
-    String dataLoaded;
+    Map<String, Object> loadedData = new HashMap<>();
 
     //generate key to store user info in db
     Date date = new Date();
@@ -165,6 +171,7 @@ public class MainActivity extends AppCompatActivity {
                     public void onSuccess(DocumentReference documentReference) {
                         Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
                         modal();
+                        ///TODO; guardar la data de la bdd y leerla en el frameweok de modal
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -175,24 +182,27 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    public void getData(){
+   /* public void getData(){
         db.collection(name)
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+
                     @Override
                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 Log.d(TAG, document.getId() + " => " + document.getData());
-                                //document.getData()
+
                                 //ENVIAR DATOS DE LA BBD DESDE ESTA CLASE AL LAYOUT DE MODAL
+                                loadedData = document.getData();
+                                modal();
                             }
                         } else {
                             Log.w(TAG, "Error getting documents.", task.getException());
                         }
                     }
                 });
-    }
+    }*/
 
     //******* MODAL *******//
 
@@ -204,10 +214,30 @@ public class MainActivity extends AppCompatActivity {
         alert.setPositiveButton("Ver", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
 
-                //get data form db
-                getData();
+                db.collection(name)
+                        .get()
+                        .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
 
-                setContentView(R.layout.modal);
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                if (task.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        Log.d(TAG, document.getId() + " => " + document.getData());
+
+                                        //ENVIAR DATOS DE LA BBD DESDE ESTA CLASE AL LAYOUT DE MODAL
+                                       // Gson gson = new Gson();
+                                       // String json = gson.toJson(document.getData());
+                                        printData(document.getData());
+
+                                    }
+                                } else {
+                                    Log.w(TAG, "Error getting documents.", task.getException());
+                                }
+                            }
+                        });
+
+
+
 
             }
         });
@@ -219,6 +249,48 @@ public class MainActivity extends AppCompatActivity {
                 });
 
         alert.show();
+
+    }
+    private void printData(Map<String, Object> data) {
+        //Map<String, Object> loadedData = new HashMap<>();
+
+        data.get("situacion");
+        data.get("especie");
+        data.get("castrado");
+        data.get("raza");
+        data.get("comentarios");
+        data.get("nombre");
+        data.get("apellido");
+        data.get("email");
+        data.get("celular");
+        data.get("foto");
+
+        setContentView(R.layout.modal);
+        //{especie=Gato, raza=olsfkdi, foto=content://media/external/images/media/91528, situacion=Perdido, apellido=fnfkdk, celular=22335599, comentarios=endidmncdkfidodlmd dldkdklddlkd dkdkdmmdnd, nombre=fkfnf, email=zjsjnsks@dkdnd.dk, castrado=true}
+
+        //TITLE
+        TextView title = (TextView) findViewById(R.id.title);
+        title.setText((CharSequence) data.get("especie"));
+
+        TextView titletwo = (TextView) findViewById(R.id.desc);
+        title.setText((CharSequence) data.get("especie"));
+
+        //DESC
+        TextView desc = (TextView) findViewById(R.id.desc);
+        desc.setText((CharSequence) data.get("comentarios"));
+
+        //RAZA
+        TextView raza = (TextView) findViewById(R.id.raza);
+        raza.setText((CharSequence) data.get("raza"));
+
+        //CASTRADO
+        TextView castrado = (TextView) findViewById(R.id.castrado);
+        castrado.setText((CharSequence) data.get("raza"));
+
+        //HUMANO
+        TextView nombre_apellido = (TextView) findViewById(R.id.nombre_apellido);
+        nombre_apellido.setText((CharSequence) data.get("nombre"));
+
 
     }
 
