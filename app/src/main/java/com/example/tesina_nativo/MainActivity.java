@@ -53,6 +53,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.squareup.picasso.Picasso;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -68,6 +69,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
 
 
 public class MainActivity extends AppCompatActivity {
@@ -209,7 +211,6 @@ public class MainActivity extends AppCompatActivity {
     public void modal() {
         AlertDialog.Builder alert = new AlertDialog.Builder(this);
         alert.setTitle("Publicación creada con éxito");
-        // alert.setMessage("Message");
 
         alert.setPositiveButton("Ver", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int whichButton) {
@@ -252,28 +253,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
     private void printData(Map<String, Object> data) {
-        //Map<String, Object> loadedData = new HashMap<>();
-
-        data.get("situacion");
-        data.get("especie");
-        data.get("castrado");
-        data.get("raza");
-        data.get("comentarios");
-        data.get("nombre");
-        data.get("apellido");
-        data.get("email");
-        data.get("celular");
-        data.get("foto");
 
         setContentView(R.layout.modal);
-        //{especie=Gato, raza=olsfkdi, foto=content://media/external/images/media/91528, situacion=Perdido, apellido=fnfkdk, celular=22335599, comentarios=endidmncdkfidodlmd dldkdklddlkd dkdkdmmdnd, nombre=fkfnf, email=zjsjnsks@dkdnd.dk, castrado=true}
 
         //TITLE
         TextView title = (TextView) findViewById(R.id.title);
-        title.setText((CharSequence) data.get("especie"));
-
-        TextView titletwo = (TextView) findViewById(R.id.desc);
-        title.setText((CharSequence) data.get("especie"));
+        title.setText(data.get("especie").toString() +" "+ data.get("situacion").toString());
 
         //DESC
         TextView desc = (TextView) findViewById(R.id.desc);
@@ -289,8 +274,24 @@ public class MainActivity extends AppCompatActivity {
 
         //HUMANO
         TextView nombre_apellido = (TextView) findViewById(R.id.nombre_apellido);
-        nombre_apellido.setText((CharSequence) data.get("nombre"));
+        nombre_apellido.setText(data.get("nombre").toString()+" "+data.get("apellido").toString());
 
+        //CEL
+        TextView cel = (TextView) findViewById(R.id.cel);
+        cel.setText(data.get("celular").toString());
+
+        //MAIL
+        TextView mail = (TextView) findViewById(R.id.mail);
+        mail.setText(data.get("email").toString());
+
+        //IMG
+        Picasso.get()
+                .load(data.get("foto").toString())
+                .resize(50, 50)
+                .centerCrop()
+                .into((ImageView) findViewById(R.id.imgGallery2));
+
+        //Picasso.get().load(data.get("foto").toString()).into((ImageView) findViewById(R.id.imgGallery2));
 
     }
 

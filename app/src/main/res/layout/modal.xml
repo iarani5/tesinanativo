@@ -1,48 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:stretchColumns="1"
-    android:id="@+id/modal_layout"
-    >
-
-    <TableRow>
-        <ImageView
-            android:id="@+id/imgGallery2"
-            android:layout_width="238dp"
-            android:layout_height="272dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="200dp"
-            android:layout_constraintBottom_toBottomOf="parent"
-            android:layout_constraintEnd_toEndOf="parent"
-            android:layout_constraintHorizontal_bias="0.609"
-            android:layout_constraintStart_toStartOf="parent"
-            android:layout_constraintTop_toTopOf="parent"
-            android:layout_constraintVertical_bias="0.312"
-            android:ignore="MissingConstraints"
-            android:srcCompat="@tools:sample/avatars[1]" />
-    </TableRow>
-    <TableRow>
-        <TextView
-            android:text="test1"
-            android:padding="3dip" />
-        <TextView
-            android:text="test2"
-            android:gravity="right"
-            android:padding="3dip" />
-    </TableRow>
-
-    <TableRow>
-        <TextView
-            android:text="test4"
-            android:padding="3dip" />
-        <TextView
-            android:text="test3"
-            android:gravity="right"
-            android:padding="3dip" />
-    </TableRow>
-</TableLayout>-->
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -52,23 +8,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
     <TextView
         android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="TextView"
+        android:textSize="22dp"
         tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="130dp"
-        tools:layout_editor_absoluteY="28dp" />
-
-    <TextView
-        android:id="@+id/titlestate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TextView2"
-        tools:ignore="MissingConstraints"
-        tools:layout_editor_absoluteX="201dp"
-        tools:layout_editor_absoluteY="28dp" />
+        tools:layout_editor_absoluteX="160dp"
+        tools:layout_editor_absoluteY="16dp" />
 
     <ImageView
         android:id="@+id/imgGallery2"
@@ -147,6 +96,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
+        android:textSize="18dp"
+
         android:text="Datos de contacto"
         app:layout_constraintTop_toBottomOf="@+id/tableLayout"
         tools:ignore="MissingConstraints"
@@ -167,16 +118,9 @@
                 android:text="Humano" />
 
             <TextView
-                android:id="@+id/nombre"
-                android:layout_width="179dp"
-                android:layout_height="match_parent"
+                android:id="@+id/nombre_apellido"
+                android:layout_width="10dp"
                 android:gravity="right"
-                android:padding="3dip"
-                android:text="test" />
-
-            <TextView
-                android:id="@+id/apellido"
-                android:gravity="left"
                 android:padding="3dip"
                 android:text="test" />
 
@@ -199,7 +143,6 @@
         </TableRow>
 
         <TableRow>
-
             <TextView
                 android:layout_width="207dp"
                 android:padding="3dip"
@@ -214,6 +157,8 @@
 
         </TableRow>
     </TableLayout>
+
+
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
