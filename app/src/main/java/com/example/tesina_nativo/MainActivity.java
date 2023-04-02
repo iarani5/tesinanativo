@@ -13,6 +13,8 @@ import androidx.core.content.res.ResourcesCompat;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -36,6 +38,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.Spinner;
@@ -90,8 +93,6 @@ public class MainActivity extends AppCompatActivity {
     // Access a Cloud Firestore instance from your Activity
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +116,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // PET AVATAR
-        Button btnGallery = findViewById(R.id.btnGallery);
+
+        //roto aca por el tipo de boton -- arrelgado
+        ImageButton btnGallery = findViewById(R.id.btGallery);
         img = (ImageView) findViewById(R.id.imgGallery);
         img.setImageResource(R.drawable.nuevo_proyecto);
 
@@ -171,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                 .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
+                        //Log.d(TAG, "DocumentSnapshot added with ID: " + documentReference.getId());
                         modal();
                         ///TODO; guardar la data de la bdd y leerla en el frameweok de modal
                     }
@@ -183,28 +186,6 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
     }
-
-   /* public void getData(){
-        db.collection(name)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d(TAG, document.getId() + " => " + document.getData());
-
-                                //ENVIAR DATOS DE LA BBD DESDE ESTA CLASE AL LAYOUT DE MODAL
-                                loadedData = document.getData();
-                                modal();
-                            }
-                        } else {
-                            Log.w(TAG, "Error getting documents.", task.getException());
-                        }
-                    }
-                });
-    }*/
 
     //******* MODAL *******//
 
@@ -226,20 +207,13 @@ public class MainActivity extends AppCompatActivity {
                                         Log.d(TAG, document.getId() + " => " + document.getData());
 
                                         //ENVIAR DATOS DE LA BBD DESDE ESTA CLASE AL LAYOUT DE MODAL
-                                       // Gson gson = new Gson();
-                                       // String json = gson.toJson(document.getData());
                                         printData(document.getData());
-
                                     }
                                 } else {
                                     Log.w(TAG, "Error getting documents.", task.getException());
                                 }
                             }
                         });
-
-
-
-
             }
         });
 
@@ -252,6 +226,13 @@ public class MainActivity extends AppCompatActivity {
         alert.show();
 
     }
+
+    public void closeModal(View view) {
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
+    }
+
     private void printData(Map<String, Object> data) {
 
         setContentView(R.layout.modal);
@@ -287,12 +268,7 @@ public class MainActivity extends AppCompatActivity {
         //IMG
         Picasso.get()
                 .load(data.get("foto").toString())
-                .resize(50, 50)
-                .centerCrop()
                 .into((ImageView) findViewById(R.id.imgGallery2));
-
-        //Picasso.get().load(data.get("foto").toString()).into((ImageView) findViewById(R.id.imgGallery2));
-
     }
 
     //************ file ***********//
@@ -438,28 +414,6 @@ public class MainActivity extends AppCompatActivity {
         }
         return true;
     }
-}
 
-
-// TO READ THE FILE
-
-/*
-
-private void loadImageFromStorage(String path)
-{
-
-    try {
-        File f=new File(path, "profile.jpg");
-        Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
-            ImageView img=(ImageView)findViewById(R.id.imgPicker);
-        img.setImageBitmap(b);
-    }
-    catch (FileNotFoundException e)
-    {
-        e.printStackTrace();
-    }
 
 }
-
-
- */
