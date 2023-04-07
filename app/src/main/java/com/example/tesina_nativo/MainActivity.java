@@ -251,7 +251,12 @@ public class MainActivity extends AppCompatActivity {
 
         //CASTRADO
         TextView castrado = (TextView) findViewById(R.id.castrado);
-        castrado.setText((CharSequence) data.get("raza"));
+        if((Boolean) data.get("castrado")){
+            castrado.setText("Si");
+        }
+        else{
+            castrado.setText("No");
+        }
 
         //HUMANO
         TextView nombre_apellido = (TextView) findViewById(R.id.nombre_apellido);
@@ -273,7 +278,7 @@ public class MainActivity extends AppCompatActivity {
 
     //************ file ***********//
     private void selectImage(Context context) {
-        final CharSequence[] options = { "Tomar Foto", "Elegir de la galerìa","Cancelar" };
+        final CharSequence[] options = { "Tomar Foto", "Cancelar" };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Elegir foto");
@@ -297,13 +302,13 @@ public class MainActivity extends AppCompatActivity {
                     startActivityForResult(takePicture, 0);
 
 
-                } else if (options[item].equals("Elegir de la galerìa")) {
+                } /*else if (options[item].equals("Elegir de la galerìa")) {
                     Intent pickPhoto = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                     startActivityForResult(pickPhoto , 1);
                     Oneanimal.setAnimalPhoto(uri);
 
 
-                } else if (options[item].equals("Cancelar")) {
+                } */else if (options[item].equals("Cancelar")) {
                     dialog.dismiss();
                 }
             }
